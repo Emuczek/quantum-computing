@@ -30,3 +30,94 @@ class SymbolicVariableArray:
     def get_all_variables(self):
         """Return all created variables as a sorted list."""
         return sorted(self._cache.values(), key=lambda s: s.name)
+    
+
+class PyToQ:
+    """
+    Converts Python expressions with sum() to upper triangular matrix Q.
+    Skips linear terms.
+    
+    Example:
+        builder = PyToQ()
+        x = builder.create_variable_array('x')
+        
+        # Write natural Python:
+        V = [10, 20]
+        expr = sum(V[i] * x[i] for i in range(2))
+        
+        # Convert to Q Matrix:
+        Q = builder.expression_to_q(expr)
+    """
+    
+    def __init__(self):
+        self.variable_arrays = {}
+    
+    def create_variable_array(self, name: str) -> SymbolicVariableArray:
+        """
+        Create a symbolic variable array.
+        
+        Args:
+            name: Base name for variables (e.g., 'x')
+            
+        Returns:
+            SymbolicVariableArray that can be indexed like x[i,j,k]
+        """
+        array = SymbolicVariableArray(name)
+        self.variable_arrays[name] = array
+        return array
+    
+    def expression_to_q(self, expr) -> Tuple[np.ndarray, Dict]:
+        """
+        Convert a SymPy expression to upper traingular matrix Q.
+        
+        Args:
+            expr: SymPy expression (from evaluating your Python code)
+            
+        Returns:
+            Q: QUBO upper traingular matrix (num_vars × num_vars)
+            var_map: Dict mapping variable indices to Symbol names
+        """
+        all_vars = sorted(expr.free_symbols, key=lambda s: s.name)
+        num_vars = len(all_vars)
+        
+        var_to_idx = {var: i for i, var in enumerate(all_vars)}
+        idx_to_var = {i: var for i, var in enumerate(all_vars)}
+        
+        Q = np.zeros((num_vars, num_vars))
+        
+        expanded = sp.expand(expr)
+        
+        terms = expanded.as_coefficients_dict()
+
+        for term, coeff in terms.items():
+
+            # TODO: skipping costant terms
+
+            if term == 1:
+                continue
+            
+            term_vars = term.free_symbols
+            
+            if len(term_vars) == 0:
+                # TODO: skipping costant terms
+                continue
+            elif len(term_vars) == 1:
+                var = list(term_vars)[0]
+                i = var_to_idx[var]
+                Q[i, i] += float(coeff)
+            elif len(term_vars) == 2:
+                vars_list = sorted(term_vars, key=lambda s: s.name)
+                i = var_to_idx[vars_list[0]]
+                j = var_to_idx[vars_list[1]]
+                
+                if i > j:
+                    i, j = j, i
+                
+                Q[i, j] += float(coeff)
+            else:
+                raise ValueError(
+                    f"QUBO only supports quadratic terms!"
+                    f"Found term with {len(term_vars)} variables: {term}"
+                )
+        
+        return Q, idx_to_var
