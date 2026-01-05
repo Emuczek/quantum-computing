@@ -1,7 +1,8 @@
 import sympy as sp
-import numpy as np
+import numpy as np 
 from typing import Dict, Tuple, Any, Callable
 import re
+from qiskit.quantum_info import SparsePauliOp
 
 class SymbolicVariableArray:
     """
@@ -121,3 +122,53 @@ class PyToQ:
                 )
         
         return Q, idx_to_var
+
+    def q_matrix_to_hamiltonian(self, Q: np.ndarray) -> SparsePauliOp:
+        """
+        Convert QUBO matrix Q to cost Hamiltonian.
+        
+        Formula:
+            For diagonal Q[i,i]: add 0.5 * Q[i,i] * (I - Z_i)
+            For off-diag Q[i,j]: add 0.25 * Q[i,j] * (I - Z_i - Z_j + Z_i*Z_j)
+        
+        We drop constant terms (all I's), so:
+            Diagonal → -0.5 * Q[i,i] * Z_i
+            Off-diag → 0.25 * Q[i,j] * Z_i*Z_j - 0.25*Q[i,j]*(Z_i + Z_j)
+        """
+        num_qubits = Q.shape[0]
+        pauli_dict = {}
+        pauli_list = []
+        
+        def make_pauli_string(positions: list, num_qubits: int) -> str:
+            """
+            Create Pauli string with Z at specified positions, I elsewhere.
+            
+            Example:
+                make_pauli_string([0, 2], 4) → "ZIZI"
+            """
+            result = ['I'] * num_qubits
+            for pos in positions:
+                result[pos] = 'Z'
+            return ''.join(result)
+        
+        for i in range(num_qubits):
+            for j in range(i, num_qubits):
+                if Q[i, j] == 0:
+                    continue
+                
+                if i == j:
+                    pauli_str = make_pauli_string([i], num_qubits)
+                    pauli_dict[pauli_str] = pauli_dict.get(pauli_str, 0) + (-0.5 * Q[i,j])
+                else:
+                    pauli_str = make_pauli_string([i, j], num_qubits)
+                    pauli_dict[pauli_str] = pauli_dict.get(pauli_str, 0) + (0.25 * Q[i,j])
+                    
+                    pauli_str = make_pauli_string([i], num_qubits)
+                    pauli_dict[pauli_str] = pauli_dict.get(pauli_str, 0) + (-0.25 * Q[i,j])
+                    
+                    pauli_str = make_pauli_string([j], num_qubits)
+                    pauli_dict[pauli_str] = pauli_dict.get(pauli_str, 0) + (-0.25 * Q[i,j])
+        
+        pauli_list = [(pauli_str, coeff) for pauli_str, coeff in pauli_dict.items()]
+        
+        return SparsePauliOp.from_list(pauli_list)
