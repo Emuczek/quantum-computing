@@ -111,6 +111,7 @@ class QAOARunner:
             circuit = qaoa_circuit.build_circuit(gamma, beta)
             
             if self.transpile_needed:
+                print(f"Transpilation began, iteration: {iteration}")
                 circuit = self.pass_manager.run(circuit)
                 obs = cost_hamiltonian.apply_layout(circuit.layout)
             else:
@@ -130,8 +131,7 @@ class QAOARunner:
                 'cost': expectation
             })
             
-            if iteration % 10 == 0:
-                print(f"  Iteration {iteration}: cost = {expectation:.4f}")
+            print(f"  Iteration {iteration}: cost = {expectation:.4f}")
             
             return expectation
         
