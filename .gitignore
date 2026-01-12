@@ -209,3 +209,4 @@ __marimo__/
 # Custom
 
 notebooks/
+fastapi_tutorial.py
