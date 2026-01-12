@@ -4,7 +4,7 @@ from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit.quantum_info import SparsePauliOp
 from scipy.optimize import minimize
 import numpy as np
-from qaoa_circuit import QAOACircuit
+from src.core.qaoa_circuit import QAOACircuit
 from typing import Literal
 
 
