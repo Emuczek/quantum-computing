@@ -1,26 +1,26 @@
 # QAOA Backend API
 
-REST API dla Quantum Approximate Optimization Algorithm (QAOA) - kwantowego algorytmu optymalizacji przybliżonej.
+REST API for Quantum Approximate Optimization Algorithm (QAOA) - a quantum approximation optimization algorithm.
 
 [![Python](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.128.0-green.svg)](https://fastapi.tiangolo.com/)
 [![Qiskit](https://img.shields.io/badge/Qiskit-2.2.3-purple.svg)](https://qiskit.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-## O projekcie
+## About
 
-System umożliwia rozwiązywanie problemów optymalizacji kombinatorycznej przy użyciu algorytmu QAOA poprzez interfejs REST API. Konwertuje wyrażenia matematyczne do formatu kwantowego, wykonuje optymalizację i zwraca rozkład prawdopodobieństwa rozwiązań.
+This system enables solving combinatorial optimization problems using the QAOA algorithm through a REST API interface. It converts mathematical expressions into quantum format, performs optimization, and returns the probability distribution of solutions.
 
-**Funkcjonalności:**
-- Automatyczna konwersja wyrażeń do formatu QUBO
-- Budowa i optymalizacja obwodów kwantowych QAOA
-- Wsparcie dla symulatora lokalnego i sprzętu IBM Quantum
-- REST API z automatyczną dokumentacją (OpenAPI)
-- Konteneryzacja Docker
+**Features:**
+- Automatic conversion of expressions to QUBO format
+- Construction and optimization of QAOA quantum circuits
+- Support for local simulator and IBM Quantum hardware
+- REST API with automatic documentation (OpenAPI)
+- Docker containerization
 
-## Szybki start
+## Quick Start
 
-### Docker
+### Docker (recommended)
 
 ```bash
 git clone https://github.com/Emuczek/quantum-computing.git
@@ -28,9 +28,9 @@ cd quantum-computing
 docker compose up --build
 ```
 
-API dostępne na: http://localhost:8000
+API available at: http://localhost:8000
 
-### Instalacja lokalna
+### Local Installation
 
 ```bash
 git clone https://github.com/Emuczek/quantum-computing.git
@@ -39,9 +39,9 @@ pip install -r requirements.txt
 uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## Użycie
+## Usage
 
-### Przykład podstawowy
+### Basic Example
 
 ```bash
 curl -X POST http://localhost:8000/solve-qaoa \
@@ -55,7 +55,7 @@ curl -X POST http://localhost:8000/solve-qaoa \
   }'
 ```
 
-### Odpowiedź
+### Response
 
 ```json
 {
@@ -92,36 +92,36 @@ result = response.json()
 print(f"Optimal cost: {result['optimal_cost']}")
 ```
 
-## Dokumentacja API
+## API Documentation
 
-Po uruchomieniu serwera:
+After starting the server:
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 
-### Główny endpoint
+### Main Endpoint
 
 **POST /solve-qaoa**
 
-| Parametr   | Typ    | Domyślnie | Opis                           |
+| Parameter  | Type   | Default   | Description                    |
 |------------|--------|-----------|--------------------------------|
-| expression | string | wymagane  | Wyrażenie Python (np. `x[0] + x[1]`) |
-| p          | int    | 1         | Głębokość QAOA (1-5)           |
-| maxiter    | int    | 50        | Maksymalna liczba iteracji     |
-| backend    | string | simulator | "simulator" lub "ibm"          |
-| shots      | int    | 1024      | Liczba pomiarów                |
+| expression | string | required  | Python expression (e.g., `x[0] + x[1]`) |
+| p          | int    | 1         | QAOA depth (1-5)               |
+| maxiter    | int    | 50        | Maximum iterations             |
+| backend    | string | simulator | "simulator" or "ibm"           |
+| shots      | int    | 1024      | Number of measurements         |
 
-## Konfiguracja IBM Quantum
+## IBM Quantum Configuration
 
-Dla użycia rzeczywistego sprzętu IBM, wystarczy wykonać jednorazowo:
+To use real IBM hardware (needed to run only once):
 
 ```bash
-# 1. Skopiuj szablon
+# 1. Copy the template
 cp src/core/save_ibm_credentials.py src/core/save_ibm_credentials_local.py
 
-# 2. Edytuj plik lokalny i wpisz token z https://quantum.ibm.com/account
-# IBM_TOKEN = "twój_token"
-# CRN = "twój_crn"
+# 2. Edit the local file and enter your token from https://quantum.ibm.com/account
+# IBM_TOKEN = "your_token"
+# CRN = "your_crn"
 
-# 3. Zapisz credentials
+# 3. Save credentials
 python src/core/save_ibm_credentials_local.py
 ```
